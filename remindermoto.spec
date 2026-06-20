@@ -3,10 +3,12 @@
 # remindermoto.spec — Configuración de PyInstaller para ReminderMailpagomoto.
 #
 # Compilar con:
-#   pyinstaller remindermoto.spec
+#   powershell -ExecutionPolicy Bypass -File .\build_remindermoto.ps1
+#   o, si se invoca manualmente:
+#   pyinstaller --noconfirm --distpath . --workpath build remindermoto.spec
 #
 # El ejecutable resultante estará en:
-#   dist/remindermoto.exe
+#   .\remindermoto.exe
 #
 # Notas:
 #   - console=False: no muestra ventana de consola (modo GUI limpio)

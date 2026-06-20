@@ -11,17 +11,18 @@ pip install pyinstaller pywin32
 
 ### 1. Limpiar build anterior
 ```bash
-# Eliminar carpetas de build previo para compilación limpia
+# Eliminar artefactos previos para compilación limpia
 Remove-Item -Recurse -Force build, dist -ErrorAction SilentlyContinue
+Remove-Item -Force remindermoto.exe -ErrorAction SilentlyContinue
 ```
 
 ### 2. Compilar con el spec
 ```bash
-pyinstaller remindermoto.spec
+powershell -ExecutionPolicy Bypass -File .\build_remindermoto.ps1
 ```
 
 ### 3. Verificar resultado
-El ejecutable estará en: `dist/remindermoto.exe`
+El ejecutable estará en: `./remindermoto.exe`
 
 Verificar que:
 - El archivo existe y tiene tamaño razonable (10-30 MB)
@@ -67,13 +68,13 @@ El exe busca config.json en `os.path.dirname(sys.executable)` — debe estar en 
 ## Post-compilación
 
 Después de compilar exitosamente:
-1. Probar `dist/remindermoto.exe` manualmente
+1. Probar `./remindermoto.exe` manualmente
 2. Hacer commit de cambios en .spec si hubo modificaciones
 3. Usar `/github-push` para subir a GitHub
 4. Si se actualizó el Task Scheduler, actualizar también la ruta en la tarea programada
 
 ## Notas importantes
 
-- El .exe en `dist/` NO se sube al repositorio GitHub (está en .gitignore)
+- El .exe en raíz NO se sube al repositorio GitHub (está en .gitignore)
 - `reminder.log` se crea en la misma carpeta que el .exe al ejecutar
 - Para actualizar la app en producción: recompilar y reemplazar el .exe

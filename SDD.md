@@ -1,6 +1,6 @@
 # SDD - ReminderMailpagomoto
 ## Spec Driven Development Document
-**Versión:** 2.1  
+**Versión:** 2.2  
 **Fecha:** 2026-06-20  
 **Autor:** erickson558
 
@@ -62,6 +62,7 @@
 | CP-01 | Compilar a .exe sin consola | ✅ Implementado |
 | CP-02 | Incluir ícono .ico en el ejecutable | ✅ Implementado |
 | CP-03 | Incluir archivos i18n en el ejecutable | ✅ v2.0 |
+| CP-04 | Recompilar dejando `remindermoto.exe` junto a `remindermoto.py` | ✅ v2.2 |
 
 ---
 
@@ -90,6 +91,7 @@ ReminderMailpagomoto/
 │       ├── es.json             # Cadenas en Español
 │       └── en.json             # Cadenas en English
 ├── config.json                 # Configuración persistente
+├── build_remindermoto.ps1      # Build reproducible a .exe en raíz del proyecto
 ├── reminderagua.ico            # Ícono de la aplicación
 ├── remindermoto.py             # Entry point (logging + lanzar GUI)
 ├── remindermoto.spec           # Configuración PyInstaller
@@ -146,17 +148,24 @@ Modo **SMTP Directo**: usa `smtplib` con STARTTLS para conectarse a `smtp-mail.o
 
 ## 6. Instrucciones de Compilación
 
-```bash
+```powershell
 # Instalar dependencias
 pip install -r requirements.txt
 pip install pyinstaller
 
-# Compilar
-pyinstaller remindermoto.spec
+# Compilar dejando el .exe junto al .py principal
+powershell -ExecutionPolicy Bypass -File .\build_remindermoto.ps1
+
+# Alternativa manual equivalente
+pyinstaller --noconfirm --distpath . --workpath build remindermoto.spec
 
 # El ejecutable estará en:
-# dist/remindermoto.exe
+# .\remindermoto.exe
 ```
+
+La compilación oficial del proyecto deja `remindermoto.exe` en la raíz del repositorio,
+junto a `remindermoto.py`. Esto mantiene alineadas la ruta del ejecutable, `config.json`
+y `reminder.log`, que la app resuelve desde la carpeta del `.exe`.
 
 ---
 
@@ -166,3 +175,5 @@ pyinstaller remindermoto.spec
 |---------|-------|---------|
 | 1.0 | 2025-02 | Versión inicial - Outlook only |
 | 2.0 | 2026-06-19 | SMTP Hotmail, multi-idioma, threading, arquitectura modular, botón donación |
+| 2.1 | 2026-06-20 | Reemplazo robusto de placeholders de mes/año |
+| 2.2 | 2026-06-20 | Build oficial genera `remindermoto.exe` en la misma carpeta que `remindermoto.py` |
