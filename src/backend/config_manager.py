@@ -126,6 +126,21 @@ def _migrate_legacy_config(config: dict) -> dict:
     return normalized
 
 
+def normalize_and_save_config(config: dict) -> dict:
+    """Normaliza el config al esquema actual y lo persiste en disco."""
+    normalized = _migrate_legacy_config(config)
+
+    for key, default_value in DEFAULT_CONFIG.items():
+        if key not in normalized:
+            normalized[key] = default_value
+        elif isinstance(default_value, dict):
+            for sub_key, sub_default in default_value.items():
+                normalized[key].setdefault(sub_key, sub_default)
+
+    save_config(normalized)
+    return normalized
+
+
 def load_config() -> dict:
     """
     Carga config.json. Si no existe devuelve los defaults.

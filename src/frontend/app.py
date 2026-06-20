@@ -22,7 +22,12 @@ import webbrowser
 import tkinter as tk
 from tkinter import simpledialog, ttk
 
-from src.backend.config_manager import CONFIG_FILE_PATH, load_config, save_config
+from src.backend.config_manager import (
+    CONFIG_FILE_PATH,
+    load_config,
+    normalize_and_save_config,
+    save_config,
+)
 from src.backend.email_sender import get_outlook_accounts, send_email
 from src.backend.date_utils import replace_placeholders
 from src.i18n import get_strings, LANGUAGES
@@ -46,6 +51,7 @@ class ReminderApp:
         # ---- Estado central ------------------------------------------------
         self.root = root
         self.config = load_config()                         # dict de configuración
+        self.config = normalize_and_save_config(self.config)
         self.lang = self.config.get("idioma", "es")         # código de idioma activo
         self.strings = get_strings(self.lang)               # cadenas de texto actuales
         self._startup_refresh_attempts = 0

@@ -1,6 +1,6 @@
 # SDD - ReminderMailpagomoto
 ## Spec Driven Development Document
-**Versión:** 2.4  
+**Versión:** 2.5  
 **Fecha:** 2026-06-20  
 **Autor:** erickson558
 
@@ -35,6 +35,7 @@
 |----|------|--------|
 | CF-01 | Guardar/cargar configuración en config.json; en `.exe` se usa el archivo ubicado junto al ejecutable | ✅ v2.3 |
 | CF-06 | Compatibilidad con `config.json` legado (`email_method`, `outlook_account`, `smtp_config`, `language`) | ✅ v2.4 |
+| CF-07 | Normalizar y persistir automáticamente `config.json` legado al esquema actual al iniciar | ✅ v2.5 |
 | CF-02 | Selección de cuenta Outlook | ✅ Implementado |
 | CF-03 | Configuración SMTP (host, puerto, email, password) | ✅ v2.0 |
 | CF-04 | Cierre automático configurable (segundos) | ✅ Implementado |
@@ -174,6 +175,8 @@ la carpeta del ejecutable.
 
 La app también migra en memoria configuraciones legadas al esquema actual para mantener
 compatibilidad con archivos antiguos sin requerir edición manual del `config.json`.
+Al iniciar, esa normalización también se persiste a disco para que la GUI y las siguientes
+ejecuciones lean un único formato consistente.
 
 ---
 
@@ -187,3 +190,4 @@ compatibilidad con archivos antiguos sin requerir edición manual del `config.js
 | 2.2 | 2026-06-20 | Build oficial genera `remindermoto.exe` en la misma carpeta que `remindermoto.py` |
 | 2.3 | 2026-06-20 | El `.exe` usa únicamente el `config.json` ubicado en su misma carpeta |
 | 2.4 | 2026-06-20 | Compatibilidad automática con claves legadas de `config.json` |
+| 2.5 | 2026-06-20 | El arranque normaliza y guarda `config.json` legado al formato actual |
