@@ -1,6 +1,6 @@
 # SDD - ReminderMailpagomoto
 ## Spec Driven Development Document
-**Versión:** 2.2  
+**Versión:** 2.3  
 **Fecha:** 2026-06-20  
 **Autor:** erickson558
 
@@ -33,7 +33,7 @@
 ### 2.3 Configuración
 | ID | Spec | Estado |
 |----|------|--------|
-| CF-01 | Guardar/cargar configuración en config.json | ✅ Implementado |
+| CF-01 | Guardar/cargar configuración en config.json; en `.exe` se usa el archivo ubicado junto al ejecutable | ✅ v2.3 |
 | CF-02 | Selección de cuenta Outlook | ✅ Implementado |
 | CF-03 | Configuración SMTP (host, puerto, email, password) | ✅ v2.0 |
 | CF-04 | Cierre automático configurable (segundos) | ✅ Implementado |
@@ -167,6 +167,10 @@ La compilación oficial del proyecto deja `remindermoto.exe` en la raíz del rep
 junto a `remindermoto.py`. Esto mantiene alineadas la ruta del ejecutable, `config.json`
 y `reminder.log`, que la app resuelve desde la carpeta del `.exe`.
 
+En modo compilado, `config.json` se lee y se escribe exclusivamente desde la misma carpeta
+que `remindermoto.exe`. El directorio de trabajo actual (`cwd`) no tiene prioridad sobre
+la carpeta del ejecutable.
+
 ---
 
 ## 7. Historial de Cambios
@@ -177,3 +181,4 @@ y `reminder.log`, que la app resuelve desde la carpeta del `.exe`.
 | 2.0 | 2026-06-19 | SMTP Hotmail, multi-idioma, threading, arquitectura modular, botón donación |
 | 2.1 | 2026-06-20 | Reemplazo robusto de placeholders de mes/año |
 | 2.2 | 2026-06-20 | Build oficial genera `remindermoto.exe` en la misma carpeta que `remindermoto.py` |
+| 2.3 | 2026-06-20 | El `.exe` usa únicamente el `config.json` ubicado en su misma carpeta |

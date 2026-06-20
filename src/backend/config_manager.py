@@ -37,12 +37,7 @@ def resolve_config_file_path(
 
     if frozen:
         exe_dir = os.path.dirname(os.path.abspath(executable_path or sys.executable))
-        parent_dir = os.path.dirname(exe_dir)
-        read_candidates = _unique_paths([
-            current_dir,
-            exe_dir,
-            parent_dir,
-        ])
+        read_candidates = [exe_dir]
         default_write_dir = exe_dir
     else:
         project_dir = os.path.dirname(
