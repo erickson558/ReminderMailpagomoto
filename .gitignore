@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+*.egg
+venv/
+.venv/
+env/
+pip-wheel-metadata/
+
+# PyInstaller
+build/
+dist/
+*.spec.bak
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secretos (NO subir contraseñas al repo)
+# config.json contiene credenciales SMTP; se sube solo la versión sin password
+# Descomentar la línea siguiente si prefieres NO versionar config.json:
+# config.json

@@ -1,0 +1,8 @@
+# Dependencias de ReminderMailpagomoto
+# Instalar con: pip install -r requirements.txt
+
+# Win32 API para integración con Outlook Desktop (solo Windows)
+pywin32>=305
+
+# PyInstaller para compilar a .exe (solo para desarrollo/build)
+# pyinstaller>=6.0

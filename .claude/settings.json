@@ -1,0 +1,4 @@
+{
+  "projectName": "ReminderMailpagomoto",
+  "description": "App de escritorio Python/tkinter para envío de recordatorios de pago por correo (Outlook + SMTP Hotmail)"
+}

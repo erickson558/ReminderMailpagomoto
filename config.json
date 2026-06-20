@@ -1,0 +1,19 @@
+{
+    "destinatarios": [
+        "destinatario1@example.com",
+        "destinatario2@example.com"
+    ],
+    "asunto": "Reminder de Pagar la moto de [Mes Actual] de [año en numero]",
+    "cuerpo": "Recordatorio de pagar los Q400 de la moto de [Mes Actual] de [año en numero]",
+    "auto_close": true,
+    "auto_close_delay": 60,
+    "send_method": "outlook",
+    "smtp": {
+        "host": "smtp-mail.outlook.com",
+        "port": 587,
+        "email": "",
+        "password": ""
+    },
+    "cuenta_outlook": "",
+    "idioma": "es"
+}
