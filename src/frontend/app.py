@@ -48,12 +48,20 @@ class ReminderApp:
         self.config = load_config()                         # dict de configuración
         self.lang = self.config.get("idioma", "es")         # código de idioma activo
         self.strings = get_strings(self.lang)               # cadenas de texto actuales
+        self._startup_refresh_attempts = 0
 
         # ---- Construcción de la interfaz ------------------------------------
         self._setup_window()
         self._build_ui()
         self._load_config_to_widgets()
         self._on_method_change()        # Mostrar/ocultar secciones según método guardado
+        logger.info(
+            "Config inicial cargada desde %s (destinatarios=%s, asunto=%r, cuerpo_len=%s)",
+            CONFIG_FILE_PATH,
+            len(self.config.get("destinatarios", [])),
+            self.config.get("asunto", ""),
+            len(self.config.get("cuerpo", "")),
+        )
         self.root.after(250, self._refresh_config_from_disk_if_widgets_empty)
 
         # ---- Auto-envío 1 s después de iniciar (comportamiento original) ---
@@ -317,9 +325,9 @@ class ReminderApp:
 
         # Asunto y cuerpo
         self.entry_asunto.delete(0, tk.END)
-        self.entry_asunto.insert(0, self.config.get("asunto", ""))
+        self.entry_asunto.insert(0, config.get("asunto", ""))
         self.text_cuerpo.delete("1.0", tk.END)
-        self.text_cuerpo.insert("1.0", self.config.get("cuerpo", ""))
+        self.text_cuerpo.insert("1.0", config.get("cuerpo", ""))
 
         # Cuenta Outlook guardada
         saved_account = config.get("cuenta_outlook", "")
@@ -337,6 +345,8 @@ class ReminderApp:
         Esto cubre escenarios donde el .exe inicia antes de que el archivo de
         configuración quede visible en el directorio sincronizado.
         """
+        self._startup_refresh_attempts += 1
+
         if self.listbox_destinatarios.size() > 0:
             return
         if self.entry_asunto.get().strip() or self.text_cuerpo.get("1.0", tk.END).strip():
@@ -349,15 +359,22 @@ class ReminderApp:
             or refreshed_config.get("cuerpo", "").strip()
         )
         if not has_content:
-            logger.info("Reintento de config sin contenido util desde: %s", CONFIG_FILE_PATH)
+            logger.info(
+                "Reintento %s sin contenido util desde: %s",
+                self._startup_refresh_attempts,
+                CONFIG_FILE_PATH,
+            )
+            if self._startup_refresh_attempts < 20:
+                self.root.after(250, self._refresh_config_from_disk_if_widgets_empty)
             return
 
         self.config = refreshed_config
         self._apply_config_to_widgets(refreshed_config)
         logger.info(
-            "Config recargada desde disco al iniciar: %s (destinatarios=%s)",
+            "Config recargada desde disco al iniciar: %s (destinatarios=%s, intento=%s)",
             CONFIG_FILE_PATH,
             len(refreshed_config.get("destinatarios", [])),
+            self._startup_refresh_attempts,
         )
 
     # =========================================================================
