@@ -22,7 +22,7 @@ import webbrowser
 import tkinter as tk
 from tkinter import simpledialog, ttk
 
-from src.backend.config_manager import load_config, save_config
+from src.backend.config_manager import CONFIG_FILE_PATH, load_config, save_config
 from src.backend.email_sender import get_outlook_accounts, send_email
 from src.backend.date_utils import replace_placeholders
 from src.i18n import get_strings, LANGUAGES
@@ -54,6 +54,7 @@ class ReminderApp:
         self._build_ui()
         self._load_config_to_widgets()
         self._on_method_change()        # Mostrar/ocultar secciones según método guardado
+        self.root.after(250, self._refresh_config_from_disk_if_widgets_empty)
 
         # ---- Auto-envío 1 s después de iniciar (comportamiento original) ---
         self.root.after(1000, self._auto_send)
@@ -304,22 +305,60 @@ class ReminderApp:
         Rellena los widgets con los valores guardados en config.json.
         Se llama una vez después de construir la UI.
         """
+        self._apply_config_to_widgets(self.config)
+
+    def _apply_config_to_widgets(self, config: dict) -> None:
+        """Sincroniza los widgets editables con el contenido de config."""
+        self.listbox_destinatarios.delete(0, tk.END)
+
         # Destinatarios
-        for dest in self.config.get("destinatarios", []):
+        for dest in config.get("destinatarios", []):
             self.listbox_destinatarios.insert(tk.END, dest)
 
         # Asunto y cuerpo
+        self.entry_asunto.delete(0, tk.END)
         self.entry_asunto.insert(0, self.config.get("asunto", ""))
+        self.text_cuerpo.delete("1.0", tk.END)
         self.text_cuerpo.insert("1.0", self.config.get("cuerpo", ""))
 
         # Cuenta Outlook guardada
-        saved_account = self.config.get("cuenta_outlook", "")
+        saved_account = config.get("cuenta_outlook", "")
         cuentas = self.combobox_cuenta["values"]
         if cuentas:
             if saved_account in cuentas:
                 self.combobox_cuenta.set(saved_account)
             else:
                 self.combobox_cuenta.current(0)
+
+    def _refresh_config_from_disk_if_widgets_empty(self) -> None:
+        """
+        Reintenta la carga desde disco si la UI quedó vacía al arrancar.
+
+        Esto cubre escenarios donde el .exe inicia antes de que el archivo de
+        configuración quede visible en el directorio sincronizado.
+        """
+        if self.listbox_destinatarios.size() > 0:
+            return
+        if self.entry_asunto.get().strip() or self.text_cuerpo.get("1.0", tk.END).strip():
+            return
+
+        refreshed_config = load_config()
+        has_content = bool(
+            refreshed_config.get("destinatarios")
+            or refreshed_config.get("asunto", "").strip()
+            or refreshed_config.get("cuerpo", "").strip()
+        )
+        if not has_content:
+            logger.info("Reintento de config sin contenido util desde: %s", CONFIG_FILE_PATH)
+            return
+
+        self.config = refreshed_config
+        self._apply_config_to_widgets(refreshed_config)
+        logger.info(
+            "Config recargada desde disco al iniciar: %s (destinatarios=%s)",
+            CONFIG_FILE_PATH,
+            len(refreshed_config.get("destinatarios", [])),
+        )
 
     # =========================================================================
     # Cambio de idioma
