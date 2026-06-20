@@ -84,12 +84,14 @@ def send_via_outlook(sender_email: str, recipients: list[str],
                       o Outlook devuelve un error.
     """
     try:
+        import pythoncom
         import win32com.client as win32
     except ImportError as exc:
         raise RuntimeError(
             "pywin32 no está instalado. Instálelo con: pip install pywin32"
         ) from exc
 
+    pythoncom.CoInitialize()
     try:
         outlook = win32.Dispatch("Outlook.Application")
         mail = outlook.CreateItem(0)  # 0 = olMailItem (correo estándar)
@@ -124,6 +126,8 @@ def send_via_outlook(sender_email: str, recipients: list[str],
 
     except Exception as exc:
         raise RuntimeError(f"Error al enviar via Outlook: {exc}") from exc
+    finally:
+        pythoncom.CoUninitialize()
 
 
 # ---------------------------------------------------------------------------
