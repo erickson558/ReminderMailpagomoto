@@ -21,6 +21,26 @@ from email.mime.multipart import MIMEMultipart
 logger = logging.getLogger(__name__)
 
 
+def _normalize_recipients(recipients: list[str]) -> list[str]:
+    """Elimina vacíos y duplicados sin descartar explícitamente al remitente."""
+    normalized: list[str] = []
+    seen: set[str] = set()
+
+    for recipient in recipients:
+        cleaned = recipient.strip()
+        if not cleaned:
+            continue
+
+        recipient_key = cleaned.lower()
+        if recipient_key in seen:
+            continue
+
+        seen.add(recipient_key)
+        normalized.append(cleaned)
+
+    return normalized
+
+
 # ---------------------------------------------------------------------------
 # Obtener cuentas Outlook disponibles
 # ---------------------------------------------------------------------------
@@ -50,7 +70,8 @@ def send_via_outlook(sender_email: str, recipients: list[str],
     Envía un correo usando Outlook mediante la interfaz MAPI (win32com).
 
     Requiere Outlook Desktop instalado y la cuenta configurada.
-    Filtra el remitente de la lista de destinatarios para evitar duplicados.
+    Conserva cualquier destinatario explícitamente configurado, aunque coincida
+    con la cuenta de envío.
 
     Args:
         sender_email: Dirección SMTP de la cuenta de envío en Outlook.
@@ -88,12 +109,18 @@ def send_via_outlook(sender_email: str, recipients: list[str],
                     f"La cuenta '{sender_email}' no está configurada en Outlook."
                 )
 
-        # Excluir el remitente de los destinatarios para evitar auto-copia
-        filtered = [r for r in recipients if r.lower() != sender_email.lower()]
-        mail.To = "; ".join(filtered)
+        normalized_recipients = _normalize_recipients(recipients)
+        if not normalized_recipients:
+            raise RuntimeError("No hay destinatarios válidos configurados.")
+
+        mail.To = "; ".join(normalized_recipients)
 
         mail.Send()
-        logger.info("Correo enviado via Outlook desde '%s' a %s", sender_email, filtered)
+        logger.info(
+            "Correo enviado via Outlook desde '%s' a %s",
+            sender_email,
+            normalized_recipients,
+        )
 
     except Exception as exc:
         raise RuntimeError(f"Error al enviar via Outlook: {exc}") from exc
@@ -139,15 +166,14 @@ def send_via_smtp(sender_email: str, password: str, recipients: list[str],
     if not password:
         raise RuntimeError("Debe ingresar la contraseña SMTP en la configuración.")
 
-    # Excluir el remitente de los destinatarios
-    filtered = [r for r in recipients if r.lower() != sender_email.lower()]
-    if not filtered:
-        raise RuntimeError("No hay destinatarios válidos (todos son el remitente).")
+    normalized_recipients = _normalize_recipients(recipients)
+    if not normalized_recipients:
+        raise RuntimeError("No hay destinatarios válidos configurados.")
 
     # Construir mensaje MIME con codificación UTF-8 para soporte de tildes/eñes
     msg = MIMEMultipart("alternative")
     msg["From"] = sender_email
-    msg["To"] = ", ".join(filtered)
+    msg["To"] = ", ".join(normalized_recipients)
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain", "utf-8"))
 
@@ -157,9 +183,13 @@ def send_via_smtp(sender_email: str, password: str, recipients: list[str],
             server.starttls()   # Inicia cifrado TLS sobre la conexión existente
             server.ehlo()       # Volver a saludar tras negociar TLS
             server.login(sender_email, password)
-            server.sendmail(sender_email, filtered, msg.as_string())
+            server.sendmail(sender_email, normalized_recipients, msg.as_string())
 
-        logger.info("Correo enviado via SMTP desde '%s' a %s", sender_email, filtered)
+        logger.info(
+            "Correo enviado via SMTP desde '%s' a %s",
+            sender_email,
+            normalized_recipients,
+        )
 
     except smtplib.SMTPAuthenticationError as exc:
         raise RuntimeError(

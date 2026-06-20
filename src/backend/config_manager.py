@@ -8,19 +8,68 @@ import json
 import os
 import sys
 
+
+def _unique_paths(paths: list[str]) -> list[str]:
+    """Conserva el orden original y elimina rutas repetidas."""
+    unique: list[str] = []
+    seen: set[str] = set()
+
+    for path in paths:
+        normalized = os.path.normcase(os.path.abspath(path))
+        if normalized in seen:
+            continue
+
+        seen.add(normalized)
+        unique.append(path)
+
+    return unique
+
+
+def resolve_config_file_path(
+    *,
+    frozen: bool,
+    executable_path: str | None = None,
+    source_file: str | None = None,
+    cwd: str | None = None,
+) -> str:
+    """Resuelve qué config.json usar según el contexto de ejecución."""
+    current_dir = os.path.abspath(cwd or os.getcwd())
+
+    if frozen:
+        exe_dir = os.path.dirname(os.path.abspath(executable_path or sys.executable))
+        parent_dir = os.path.dirname(exe_dir)
+        read_candidates = _unique_paths([
+            current_dir,
+            exe_dir,
+            parent_dir,
+        ])
+        default_write_dir = exe_dir
+    else:
+        project_dir = os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.abspath(source_file or __file__)))
+        )
+        read_candidates = _unique_paths([
+            project_dir,
+            current_dir,
+        ])
+        default_write_dir = project_dir
+
+    for base_dir in read_candidates:
+        candidate = os.path.join(base_dir, "config.json")
+        if os.path.exists(candidate):
+            return candidate
+
+    return os.path.join(default_write_dir, "config.json")
+
+
 # ---------------------------------------------------------------------------
 # Ruta base: funciona en modo script (dev) y en ejecutable PyInstaller (.exe)
 # ---------------------------------------------------------------------------
-if getattr(sys, 'frozen', False):
-    # Ejecutable compilado: usar carpeta del .exe
-    BASE_PATH = os.path.dirname(sys.executable)
-else:
-    # Modo desarrollo: subir dos niveles desde src/backend/
-    BASE_PATH = os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    )
-
-CONFIG_FILE_PATH = os.path.join(BASE_PATH, "config.json")
+CONFIG_FILE_PATH = resolve_config_file_path(
+    frozen=getattr(sys, 'frozen', False),
+    executable_path=getattr(sys, 'executable', None),
+    source_file=__file__,
+)
 
 # ---------------------------------------------------------------------------
 # Valores por defecto: cualquier clave ausente se rellena con estos valores.
