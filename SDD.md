@@ -1,7 +1,7 @@
 # SDD - ReminderMailpagomoto
 ## Spec Driven Development Document
-**Versión:** 2.0  
-**Fecha:** 2026-06-19  
+**Versión:** 2.1  
+**Fecha:** 2026-06-20  
 **Autor:** erickson558
 
 ---
@@ -19,7 +19,7 @@
 |----|------|--------|
 | EM-01 | Enviar correo vía Outlook (win32com) | ✅ Implementado |
 | EM-02 | Enviar correo vía SMTP directo (Hotmail, Gmail, etc.) | ✅ v2.0 |
-| EM-03 | Soporte placeholders `[Mes Actual]` y `[año en numero]` | ✅ Implementado |
+| EM-03 | Soporte placeholders `[Mes Actual]` y `[año en numero]` con reemplazo tolerante a mayúsculas/minúsculas y variante `ano` | ✅ v2.1 |
 | EM-04 | Filtrar remitente de la lista de destinatarios | ✅ Implementado |
 | EM-05 | Envío en hilo separado (no bloquea GUI) | ✅ v2.0 |
 

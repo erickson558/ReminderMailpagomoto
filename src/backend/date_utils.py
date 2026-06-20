@@ -2,14 +2,18 @@
 date_utils.py — Utilidades de fecha para los placeholders del correo.
 
 Proporciona la lógica de "mes anterior" que usa el proyecto:
-  - En enero → retorna diciembre del año anterior
-  - Resto del año → retorna el mes en curso (comportamiento del código original)
+    - En enero → retorna diciembre del año anterior
+    - Resto del año → retorna el mes en curso (comportamiento del código original)
 
 Placeholders soportados:
-  [Mes Actual]      → nombre del mes (capitalizado) según lógica anterior
-  [año en numero]   → año como string
+    [Mes Actual]      → nombre del mes (capitalizado) según lógica anterior
+    [año en numero]   → año como string
+
+El reemplazo es tolerante a diferencias de mayúsculas/minúsculas y a la
+variante sin ñ en "ano" para evitar que plantillas válidas salgan sin sustituir.
 """
 import datetime
+import re
 
 # Nombres de los meses en español (índice 1-12)
 MESES_ES: dict[int, str] = {
@@ -18,6 +22,12 @@ MESES_ES: dict[int, str] = {
     7: "julio",   8: "agosto",   9: "septiembre",
     10: "octubre", 11: "noviembre", 12: "diciembre",
 }
+
+MONTH_PLACEHOLDER_PATTERN = re.compile(r"\[\s*mes\s+actual\s*\]", re.IGNORECASE)
+YEAR_PLACEHOLDER_PATTERN = re.compile(
+    r"\[\s*a(?:ñ|n)o\s+en\s+numero\s*\]",
+    re.IGNORECASE,
+)
 
 
 def get_previous_month_info() -> tuple[str, str]:
@@ -56,6 +66,6 @@ def replace_placeholders(text: str) -> str:
     Retorna el texto con los placeholders sustituidos.
     """
     month_name, year_str = get_previous_month_info()
-    text = text.replace("[Mes Actual]", month_name)
-    text = text.replace("[año en numero]", year_str)
+    text = MONTH_PLACEHOLDER_PATTERN.sub(month_name, text)
+    text = YEAR_PLACEHOLDER_PATTERN.sub(year_str, text)
     return text
