@@ -88,6 +88,44 @@ DEFAULT_CONFIG: dict = {
 }
 
 
+def _migrate_legacy_config(config: dict) -> dict:
+    """Normaliza configuraciones antiguas al esquema actual sin perder valores."""
+    normalized = dict(config)
+
+    if "email_method" in normalized and not normalized.get("send_method"):
+        normalized["send_method"] = normalized["email_method"]
+
+    if "outlook_account" in normalized and not normalized.get("cuenta_outlook"):
+        normalized["cuenta_outlook"] = normalized["outlook_account"]
+
+    if "language" in normalized and not normalized.get("idioma"):
+        normalized["idioma"] = normalized["language"]
+
+    legacy_smtp = normalized.get("smtp_config") or {}
+    current_smtp = dict(normalized.get("smtp") or {})
+    if legacy_smtp and not current_smtp:
+        current_smtp = {
+            "host": legacy_smtp.get("server", "smtp-mail.outlook.com"),
+            "port": legacy_smtp.get("port", 587),
+            "email": legacy_smtp.get("username", ""),
+            "password": legacy_smtp.get("password", ""),
+        }
+    else:
+        if not current_smtp.get("host") and legacy_smtp.get("server"):
+            current_smtp["host"] = legacy_smtp["server"]
+        if not current_smtp.get("port") and legacy_smtp.get("port"):
+            current_smtp["port"] = legacy_smtp["port"]
+        if not current_smtp.get("email") and legacy_smtp.get("username"):
+            current_smtp["email"] = legacy_smtp["username"]
+        if not current_smtp.get("password") and legacy_smtp.get("password"):
+            current_smtp["password"] = legacy_smtp["password"]
+
+    if current_smtp:
+        normalized["smtp"] = current_smtp
+
+    return normalized
+
+
 def load_config() -> dict:
     """
     Carga config.json. Si no existe devuelve los defaults.
@@ -98,6 +136,8 @@ def load_config() -> dict:
             config = json.load(f)
     else:
         config = {}
+
+    config = _migrate_legacy_config(config)
 
     # Aplicar defaults en primer nivel
     for key, default_value in DEFAULT_CONFIG.items():
