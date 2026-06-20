@@ -1,19 +1,22 @@
 {
     "destinatarios": [
-        "destinatario1@example.com",
-        "destinatario2@example.com"
+        "erickson007@gmail.com",
+        "elsamaritza2016@gmail.com",
+        "erickson558@hotmail.com",
+        "systemsolutionie@gmail.com",
+        "erickson558@outlook.com"
     ],
     "asunto": "Reminder de Pagar la moto de [Mes Actual] de [año en numero]",
-    "cuerpo": "Recordatorio de pagar los Q400 de la moto de [Mes Actual] de [año en numero]",
+    "cuerpo": "Recordatorio de pagar los Q400 de la moto a Alberto de [Mes Actual] de [año en numero]",
     "auto_close": true,
     "auto_close_delay": 60,
-    "send_method": "outlook",
-    "smtp": {
-        "host": "smtp-mail.outlook.com",
+    "email_method": "outlook",
+    "outlook_account": "erickson558@hotmail.com",
+    "smtp_config": {
+        "server": "smtp-mail.outlook.com",
         "port": 587,
-        "email": "",
+        "username": "",
         "password": ""
     },
-    "cuenta_outlook": "",
-    "idioma": "es"
+    "language": "es"
 }
