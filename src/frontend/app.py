@@ -529,8 +529,12 @@ class ReminderApp:
                 return
 
         # --- Reemplazar placeholders en asunto y cuerpo ---------------------
-        asunto = replace_placeholders(self.entry_asunto.get().strip())
-        cuerpo = replace_placeholders(self.text_cuerpo.get("1.0", tk.END).strip())
+        asunto_template = self.entry_asunto.get().strip()
+        cuerpo_template = self.text_cuerpo.get("1.0", tk.END).strip()
+        asunto = replace_placeholders(asunto_template)
+        cuerpo = replace_placeholders(cuerpo_template)
+        logger.info("Asunto resuelto para envio: %s", asunto)
+        logger.info("Cuerpo resuelto para envio: %s", cuerpo)
 
         # Tomar snapshot de config al momento de enviar (thread safety)
         config_snap = self._get_config_from_ui()
