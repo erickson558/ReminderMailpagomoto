@@ -419,6 +419,13 @@ class ReminderApp:
             "idioma": self.lang,
         }
 
+    def _persist_config(self, config: dict | None = None) -> dict:
+        """Guarda el estado actual de la UI y actualiza el snapshot en memoria."""
+        config_to_save = config or self._get_config_from_ui()
+        save_config(config_to_save)
+        self.config = config_to_save
+        return config_to_save
+
     # =========================================================================
     # Guardar configuración
     # =========================================================================
@@ -426,7 +433,7 @@ class ReminderApp:
     def _save_config_from_ui(self) -> None:
         """Lee la UI, construye el dict de config y lo escribe en config.json."""
         try:
-            save_config(self._get_config_from_ui())
+            self._persist_config()
             self._set_status(self.strings["status_saved"], "green")
         except Exception as exc:
             self._set_status(self.strings["status_save_error"] + str(exc), "red")
@@ -455,7 +462,11 @@ class ReminderApp:
         )
         if nuevo and nuevo.strip():
             self.listbox_destinatarios.insert(tk.END, nuevo.strip())
-            self._set_status(self.strings["status_added"], "green")
+            try:
+                self._persist_config()
+                self._set_status(self.strings["status_added"], "green")
+            except Exception as exc:
+                self._set_status(self.strings["status_save_error"] + str(exc), "red")
 
     def _eliminar_destinatario(self) -> None:
         """Elimina los destinatarios seleccionados en la listbox."""
@@ -466,7 +477,11 @@ class ReminderApp:
         # Eliminar en orden inverso para que los índices no se desplacen
         for index in reversed(seleccion):
             self.listbox_destinatarios.delete(index)
-        self._set_status(self.strings["status_removed"], "green")
+        try:
+            self._persist_config()
+            self._set_status(self.strings["status_removed"], "green")
+        except Exception as exc:
+            self._set_status(self.strings["status_save_error"] + str(exc), "red")
 
     # =========================================================================
     # Botón donación
@@ -519,6 +534,10 @@ class ReminderApp:
 
         # Tomar snapshot de config al momento de enviar (thread safety)
         config_snap = self._get_config_from_ui()
+        try:
+            config_snap = self._persist_config(config_snap)
+        except Exception as exc:
+            logger.warning("No se pudo persistir la configuración antes de enviar: %s", exc)
 
         # --- Deshabilitar botón y mostrar progreso --------------------------
         self.btn_enviar.config(state=tk.DISABLED)
